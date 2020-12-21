@@ -1,0 +1,17 @@
+.settings
+.DS_Store
+
+*.iml
+.idea
+target
+
+.class
+.log
+.jar
+.war
+.ear
+.zip
+.tar.gz
+.rar
+
+hs_err_pid*
