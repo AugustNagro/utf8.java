@@ -14,7 +14,7 @@ import static com.augustnagro.utf8.LookupTables.*;
 
 public class Utf8 {
 
-  private static final VectorSpecies<Byte> species = ByteVector.SPECIES_128;
+  private static final VectorSpecies<Byte> species = ByteVector.SPECIES_PREFERRED;
   /**
    * Returns true if buf is valid UTF-8.
    */
