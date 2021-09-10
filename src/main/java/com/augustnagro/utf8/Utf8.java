@@ -1,25 +1,24 @@
 package com.augustnagro.utf8;
 
-import jdk.incubator.foreign.MemoryAccess;
-import jdk.incubator.foreign.MemorySegment;
 import jdk.incubator.vector.ByteVector;
 import jdk.incubator.vector.Vector;
 import jdk.incubator.vector.VectorMask;
 import jdk.incubator.vector.VectorSpecies;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static jdk.incubator.vector.VectorOperators.*;
+import static com.augustnagro.utf8.LookupTables.*;
 
 public class Utf8 {
 
+  private static final VectorSpecies<Byte> species = ByteVector.SPECIES_128;
   /**
    * Returns true if buf is valid UTF-8.
    */
-  public static boolean validate(byte[] buf, VectorSpecies<Byte> species, LookupTables lut) {
+  public static boolean validate(byte[] buf) {
     /*
     These three vectors are the local state.
     -> error: if ever non-zero, there has been a UTF-8 error.
@@ -46,7 +45,7 @@ public class Utf8 {
         // if last vector had an incomplete multi-byte char, put it in error vector.
         error = error.or(prevIncomplete);
       } else {
-        error = error.or(testUtf8(input, prevInputBlock, species, lut));
+        error = error.or(testUtf8(input, prevInputBlock));
         /*
         There are three cases we must consider at the end of our vector:
         1. Last byte is like 11______ (starting byte for a 2-byte char)
@@ -58,7 +57,7 @@ public class Utf8 {
         , which ends with the first two bytes of char '¢', then prevIncomplete =
         <0, 0, ..., 11111111, 0>
          */
-        prevIncomplete = input.and(lut.isIncompleteAnd).eq(lut.isIncompleteEq).toVector();
+        prevIncomplete = input.and(isIncompleteAnd).eq(isIncompleteEq).toVector();
         prevInputBlock = input;
       }
     }
@@ -70,8 +69,8 @@ public class Utf8 {
     ByteVector input = ByteVector.fromArray(species, buf, i, m);
     boolean notAscii = input.test(IS_NEGATIVE).anyTrue();
     if (notAscii) {
-      error = error.or(testUtf8(input, prevInputBlock, species, lut));
-      prevIncomplete = input.and(lut.isIncompleteAnd).eq(lut.isIncompleteEq).toVector();
+      error = error.or(testUtf8(input, prevInputBlock));
+      prevIncomplete = input.and(isIncompleteAnd).eq(isIncompleteEq).toVector();
     }
 
     /*
@@ -90,8 +89,7 @@ public class Utf8 {
   /**
    * Returns the error vector
    */
-  private static Vector<Byte> testUtf8(ByteVector input, ByteVector prevInputBlock,
-                                       VectorSpecies<Byte> species, LookupTables lut) {
+  private static Vector<Byte> testUtf8(ByteVector input, ByteVector prevInputBlock) {
 
     /*
     Check multi byte lengths.
@@ -121,9 +119,9 @@ public class Utf8 {
     The paper linked in README does excelent job explaining the lookup tables.
      */
     ByteVector prev1 = prevInputBlock.slice(species.length() - 1, input);
-    ByteVector byte1High = prev1.lanewise(LSHR, 4).selectFrom(lut.byte1HighLookup);
-    ByteVector byte1Low = prev1.and((byte) 0x0f).selectFrom(lut.byte1LowLookup);
-    ByteVector byte2High = input.lanewise(LSHR, 4).selectFrom(lut.byte2HighLookup);
+    ByteVector byte1High = prev1.lanewise(LSHR, 4).selectFrom(byte1HighLookup);
+    ByteVector byte1Low = prev1.and((byte) 0x0f).selectFrom(byte1LowLookup);
+    ByteVector byte2High = input.lanewise(LSHR, 4).selectFrom(byte2HighLookup);
     ByteVector specialCases = byte1High.and(byte1Low).and(byte2High);
 
     // any markers not 'knocked-out' with XOR represent error.
@@ -131,8 +129,6 @@ public class Utf8 {
   }
 
   public static void main(String[] args) throws IOException {
-    VectorSpecies<Byte> species = ByteVector.SPECIES_128;
-    LookupTables lut = new LookupTables(species);
     byte[] buf;
 
     if (args.length == 0) {
@@ -144,13 +140,13 @@ public class Utf8 {
       };
       for (String resource : resources) {
         buf = Utf8.class.getResourceAsStream("/" + resource).readAllBytes();
-        System.out.println(resource + ": " + validate(buf, species, lut));
+        System.out.println(resource + ": " + validate(buf));
       }
 
     } else {
       for (String path : args) {
         buf = Files.readAllBytes(Path.of(path));
-        System.out.println(path + ": " + validate(buf, species, lut));
+        System.out.println(path + ": " + validate(buf));
       }
     }
   }
