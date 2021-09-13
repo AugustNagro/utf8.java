@@ -1,6 +1,5 @@
 package com.augustnagro.utf8;
 
-import jdk.incubator.vector.ByteVector;
 import org.openjdk.jmh.annotations.*;
 
 import java.io.IOException;
@@ -33,19 +32,19 @@ public class Bench {
     return new String(buf, StandardCharsets.UTF_8);
   }
 
-  private static final LookupTables LOOKUP_TABLES_128 =
-      new LookupTables(ByteVector.SPECIES_128);
-
-  @Benchmark
-  public boolean vector_128() {
-    return Utf8.validate(buf, ByteVector.SPECIES_128, LOOKUP_TABLES_128);
-  }
-
-  private static final LookupTables LOOKUP_TABLES_PREFERRED =
-      new LookupTables(ByteVector.SPECIES_PREFERRED);
+//  private static final LookupTables LOOKUP_TABLES_128 =
+//      new LookupTables(ByteVector.SPECIES_128);
+//
+//  @Benchmark
+//  public boolean vector_128() {
+//    return Utf8.validate(buf, ByteVector.SPECIES_128, LOOKUP_TABLES_128);
+//  }
+//
+//  private static final LookupTables LOOKUP_TABLES_PREFERRED =
+//      new LookupTables(ByteVector.SPECIES_PREFERRED);
 
   @Benchmark
   public boolean vector_preferred() {
-    return Utf8.validate(buf, ByteVector.SPECIES_PREFERRED, LOOKUP_TABLES_PREFERRED);
+    return Utf8.validate(buf);
   }
 }
