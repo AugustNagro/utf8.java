@@ -15,7 +15,8 @@ import java.nio.charset.StandardCharsets;
         "--add-modules=jdk.incubator.vector",
     }
 )
-public class Bench {
+public class Bench128 {
+  private static final LookupTables LUTS = new LookupTables128();
 
   @Param({"/twitter.json", "/utf8-demo.txt", "/utf8-demo-invalid.txt", "/20k.txt"})
   String testFile;
@@ -27,24 +28,9 @@ public class Bench {
     buf = getClass().getResourceAsStream(testFile).readAllBytes();
   }
 
-  @Benchmark
-  public String jdk() {
-    return new String(buf, StandardCharsets.UTF_8);
-  }
-
-//  private static final LookupTables LOOKUP_TABLES_128 =
-//      new LookupTables(ByteVector.SPECIES_128);
-//
-//  @Benchmark
-//  public boolean vector_128() {
-//    return Utf8.validate(buf, ByteVector.SPECIES_128, LOOKUP_TABLES_128);
-//  }
-//
-//  private static final LookupTables LOOKUP_TABLES_PREFERRED =
-//      new LookupTables(ByteVector.SPECIES_PREFERRED);
 
   @Benchmark
-  public boolean vector_preferred() {
-    return Utf8.validate(buf);
+  public boolean vector_128() {
+    return Utf8.validate(buf, LUTS);
   }
 }
