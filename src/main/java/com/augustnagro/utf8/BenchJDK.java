@@ -16,6 +16,11 @@ import java.nio.charset.StandardCharsets;
   }
 )
 public class BenchJDK {
+
+  private static final LookupTables LUTS_128 = new LookupTables128();
+  private static final LookupTables LUTS_256 = new LookupTables256();
+  private static final LookupTables LUTS_512 = new LookupTables512();
+
   @Param({"/twitter.json", "/utf8-demo.txt", "/utf8-demo-invalid.txt", "/20k.txt"})
   String testFile;
 
@@ -30,4 +35,21 @@ public class BenchJDK {
   public String jdk() {
     return new String(buf, StandardCharsets.UTF_8);
   }
+
+
+  @Benchmark
+  public boolean vector_512() {
+    return Utf8.validate(buf, LUTS_512);
+  }
+
+  @Benchmark
+  public boolean vector_256() {
+    return Utf8.validate(buf, LUTS_256);
+  }
+
+  @Benchmark
+  public boolean vector_128() {
+    return Utf8.validate(buf, LUTS_128);
+  }
+
 }
