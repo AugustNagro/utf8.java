@@ -61,7 +61,7 @@ In 181 days, performance has increased up to 127 fold!
     of slowdown sooner.
   - I wish there was a (documented) debug/logging flag.
   - Vector::selectInto is awesome for lookup tables.
-  - The project's [JavaDoc](https://download.java.net/java/early_access/jdk16/docs/api/jdk.incubator.vector/jdk/incubator/vector/package-summary.html) 
+  - The project's [JavaDoc](https://docs.oracle.com/en/java/javase/17/docs/api/jdk.incubator.vector/jdk/incubator/vector/package-summary.html) 
     is one of the best introductions to vectorization on the internet.
   - Debugging works great! I do wish we could make Vector::toString print
     hex instead of base 10 by default.
