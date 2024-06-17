@@ -1,8 +1,6 @@
 package com.augustnagro.utf8;
 
-import jdk.incubator.foreign.MemoryAccess;
-import jdk.incubator.foreign.MemoryLayouts;
-import jdk.incubator.foreign.MemorySegment;
+import java.lang.foreign.MemorySegment;
 import jdk.incubator.vector.ByteVector;
 import jdk.incubator.vector.VectorSpecies;
 import org.openjdk.jmh.annotations.*;
