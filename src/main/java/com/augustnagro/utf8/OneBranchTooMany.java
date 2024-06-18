@@ -23,7 +23,8 @@ import static jdk.incubator.vector.VectorOperators.*;
     }
 )
 public class OneBranchTooMany {
-
+  // It is unclear what this benchmark is supposed to do.
+/*
   private static final long SEED = 4691838106802987135L;
   private static final VectorSpecies<Byte> SPECIES = ByteVector.SPECIES_128;
   private static final ByteOrder BYTE_ORDER = ByteOrder.nativeOrder();
@@ -114,5 +115,5 @@ public class OneBranchTooMany {
 
     return isAllPositive && res.test(IS_DEFAULT).allTrue();
   }
-
+*/
 }

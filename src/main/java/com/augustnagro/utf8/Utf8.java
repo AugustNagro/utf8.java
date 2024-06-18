@@ -12,7 +12,73 @@ import java.nio.file.Path;
 import static jdk.incubator.vector.VectorOperators.*;
 
 public class Utf8 {
+  public static boolean scalarValidUtf8(int pos, byte[] byteArray) {
+    int codePoint = 0;
+    int nextPos;
+    while (pos < byteArray.length) {
+        int byteVal = byteArray[pos] & 0xff;
 
+        while (byteVal < 0b10000000) {
+            if (++pos == byteArray.length) {
+                return true;
+            }
+            byteVal = byteArray[pos] & 0xff;
+        }
+
+        if ((byteVal & 0b11100000) == 0b11000000) {
+            nextPos = pos + 2;
+            if (nextPos > byteArray.length) {
+                return false;
+            }
+            if ((byteArray[pos + 1] & 0b11000000) != 0b10000000) {
+                return false;
+            }
+            // Range check
+            codePoint = ((byteVal & 0b00011111) << 6) | (byteArray[pos + 1] & 0b00111111);
+            if ((codePoint < 0x80) || (0x7ff < codePoint)) {
+                return false;
+            }
+        } else if ((byteVal & 0b11110000) == 0b11100000) {
+            nextPos = pos + 3;
+            if (nextPos > byteArray.length) {
+                return false;
+            }
+            if ((byteArray[pos + 1] & 0b11000000) != 0b10000000 || (byteArray[pos + 2] & 0b11000000) != 0b10000000) {
+                return false;
+            }
+            // Range check
+            codePoint = ((byteVal & 0b00001111) << 12)
+                    | ((byteArray[pos + 1] & 0b00111111) << 6)
+                    | (byteArray[pos + 2] & 0b00111111);
+            if ((codePoint < 0x800) || (0xffff < codePoint) || (0xd7ff < codePoint && codePoint < 0xe000)) {
+                return false;
+            }
+        } else if ((byteVal & 0b11111000) == 0b11110000) {
+            nextPos = pos + 4;
+            if (nextPos > byteArray.length) {
+                return false;
+            }
+            if ((byteArray[pos + 1] & 0b11000000) != 0b10000000
+                    || (byteArray[pos + 2] & 0b11000000) != 0b10000000
+                    || (byteArray[pos + 3] & 0b11000000) != 0b10000000) {
+                return false;
+            }
+            // Range check
+            codePoint = ((byteVal & 0b00000111) << 18)
+                    | ((byteArray[pos + 1] & 0b00111111) << 12)
+                    | ((byteArray[pos + 2] & 0b00111111) << 6)
+                    | (byteArray[pos + 3] & 0b00111111);
+            if (codePoint <= 0xffff || 0x10ffff < codePoint) {
+                return false;
+            }
+        } else {
+            // We may have a continuation byte
+            return false;
+        }
+        pos = nextPos;
+    }
+    return true;
+  }
   /**
    * Returns true if buf is valid UTF-8.
    */
@@ -63,29 +129,29 @@ public class Utf8 {
         prevInputBlock = input;
       }
     }
-
-    /*
-    Final run for the remaining bytes.
-     */
-    VectorMask<Byte> m = species.indexInRange(i, buf.length);
-    ByteVector input = ByteVector.fromArray(species, buf, i, m);
-    boolean notAscii = input.test(IS_NEGATIVE).anyTrue();
-    if (notAscii) {
-      error = error.or(testUtf8(input, prevInputBlock, lut));
-      prevIncomplete = input.and(isIncompleteAnd).eq(isIncompleteEq).toVector();
+    // if we did no SIMD processing, call the scalar routine
+    if(i == 0) {
+      return scalarValidUtf8(0, buf);
     }
-
-    /*
-    Check end of file.. needed for both ascii and utf8 paths, since
-    the specialCases in validateUtf8() only checks for bytes
-    too large in the first of two bytes.
-     */
-    error = error.or(prevIncomplete);
-
-    /*
-    If no lanes in error are set, the bytes are valid UTF-8.
-     */
-    return error.test(IS_DEFAULT).allTrue();
+    // if we caught an error, it ends there.
+    if (!error.test(IS_DEFAULT).allTrue()) {
+      return false;
+    }
+    // We may still have an error in the last few bytes.
+    // go back to the last complete char
+    boolean foundLeadingBytes = false;
+    for (int j = 0; j <= 3; j++) {
+      byte candidateByte = buf[i - j];
+      foundLeadingBytes = (candidateByte & 0b11000000) != 0b10000000;
+      if (foundLeadingBytes) {
+        i -= j;
+        break;
+      }
+    }
+    if (!foundLeadingBytes) {
+      return false;
+    }
+    return scalarValidUtf8(i, buf);
   }
 
   /**
