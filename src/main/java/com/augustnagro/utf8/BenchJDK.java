@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 
 @BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
-@Warmup(iterations = 1, time = 1)
+@Warmup(iterations = 3, time = 5)
 @Measurement(time = 1, iterations = 1)
 @Fork(
   value = 1, warmups = 1,
