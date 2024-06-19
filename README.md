@@ -6,7 +6,7 @@ Based on the [paper by John Keiser and Daniel Lemire](https://arxiv.org/abs/2010
 with minor modifications.
 
 ## Verify Correctness
-Make sure to have Java 17 or greater installed. Then execute:
+Make sure to have Java 22 installed. Then execute:
 
 ```bash
 mvn compile assembly:single && \
@@ -32,24 +32,15 @@ The JMH benchmarks use the same 4 test files mentioned above, at 3 vector length
 
 ## Performance
 
-Throughput for `twitter.json`:
+Throughput for `twitter.json` as of 2024-06-19:
 
-| `new String(buf, UTF_8)` | `Utf8.validate(buf, new LookupTables256())` | `simdjson::validate_utf8(str, len)` |
-| --- | --- | --- |
-| .8 GB/sec | 3.52 GB/sec | 24 GB/sec |
+| `new String(buf, UTF_8)` | `Utf8.validate(buf, new LookupTables256())` | `simdjson::validate_utf8(str, len)`         |
+|--------------------------|---------------------------------------------|---------------------------------------------|
+| .96 GB/sec               | 11.44 GB/sec                                | 24 GB/sec (from paper, not recently tested) |
 
 * The JDK algorithm is very optimized, and uses intrinsics to check negatives (for the ASCII shortcut) and to elide array bound checks.
 
 * In the vectorized algorithm, 256 bit vectors currently perform best. We cannot go smaller than 128 bit, since nibbles (4 bits) are used to select from the lookup tables.
-
-
-## JDK 16 (16 March 2021) vs Latest Panama Build (13 September 2021) 
-
-![256-bit-jdk-comparison](./256-bit-jdk-comparison.png)
-
-In 181 days, performance has increased up to 127 fold!
-
-![128-bit-jdk-comparison](./128-bit-jdk-comparison.png)
 
 ## Conclusion
 
