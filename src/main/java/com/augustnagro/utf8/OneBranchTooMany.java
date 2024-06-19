@@ -12,6 +12,13 @@ import java.util.Random;
 
 import static jdk.incubator.vector.VectorOperators.*;
 
+/*
+  This issue has now been fixed in OpenJDK
+
+  https://mail.openjdk.org/pipermail/panama-dev/2020-December/011650.html
+
+  https://mail.openjdk.org/pipermail/panama-dev/2020-December/011651.html
+ */
 @BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
 @Measurement(time = 1, iterations = 5)
@@ -23,7 +30,6 @@ import static jdk.incubator.vector.VectorOperators.*;
     }
 )
 public class OneBranchTooMany {
-  // It is unclear what this benchmark is supposed to do.
 /*
   private static final long SEED = 4691838106802987135L;
   private static final VectorSpecies<Byte> SPECIES = ByteVector.SPECIES_128;
