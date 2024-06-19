@@ -80,12 +80,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-			 <source>21</source>
-			<target>21</target>
+			 <source>22</source>
+			<target>22</target>
                     <compilerArgs>
 			<compilerArg>--enable-preview</compilerArg>
 			<compilerArg>--add-modules</compilerArg>
-                        <compilerArg>java.base,jdk.incubator.vector</compilerArg>
+                        <compilerArg>jdk.incubator.vector</compilerArg>
                     </compilerArgs>
                 </configuration>
             </plugin>
