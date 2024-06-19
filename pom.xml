@@ -68,11 +68,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
         <jmh.version>1.27</jmh.version>
 
         <!--
-            Java source/target to use for compilation.
-          -->
-        <javac.target>18</javac.target>
-
-        <!--
             Name of the benchmark Uber-JAR to generate.
           -->
         <uberjar.name>benchmarks</uberjar.name>
@@ -85,13 +80,12 @@ THE POSSIBILITY OF SUCH DAMAGE.
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <compilerVersion>${javac.target}</compilerVersion>
-                    <source>18</source>
-                    <target>18</target>
+			 <source>21</source>
+			<target>21</target>
                     <compilerArgs>
-                        <compilerArg>--enable-preview</compilerArg>
-                        <compilerArg>--add-modules</compilerArg>
-                        <compilerArg>jdk.incubator.vector,jdk.incubator.foreign</compilerArg>
+			<compilerArg>--enable-preview</compilerArg>
+			<compilerArg>--add-modules</compilerArg>
+                        <compilerArg>java.base,jdk.incubator.vector</compilerArg>
                     </compilerArgs>
                 </configuration>
             </plugin>

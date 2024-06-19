@@ -7,9 +7,10 @@ import java.nio.charset.StandardCharsets;
 
 @BenchmarkMode(Mode.Throughput)
 @State(Scope.Benchmark)
-@Measurement(time = 1, iterations = 5)
+@Warmup(iterations = 1, time = 1)
+@Measurement(time = 1, iterations = 1)
 @Fork(
-  value = 1,
+  value = 1, warmups = 1,
   jvmArgsPrepend = {
     "--enable-preview",
     "--add-modules=jdk.incubator.vector",
@@ -21,7 +22,7 @@ public class BenchJDK {
   private static final LookupTables LUTS_256 = new LookupTables256();
   private static final LookupTables LUTS_512 = new LookupTables512();
 
-  @Param({"/twitter.json", "/utf8-demo.txt", "/utf8-demo-invalid.txt", "/20k.txt"})
+  @Param({"/twitter.json"}) // the following could be added to the list: {"/utf8-demo.txt", "/utf8-demo-invalid.txt", "/20k.txt"}
   String testFile;
 
   byte[] buf;
@@ -32,10 +33,19 @@ public class BenchJDK {
   }
 
   @Benchmark
-  public String jdk() {
-    return new String(buf, StandardCharsets.UTF_8);
+  public boolean jdk() {
+    try {
+      new String(buf, StandardCharsets.UTF_8);
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
+  @Benchmark
+  public boolean scalar() {
+    return Utf8.scalarValidUtf8(0, buf);
+  }
 
   @Benchmark
   public boolean vector_512() {
